@@ -8,7 +8,7 @@ const CHAMPS = [
   {id:"Aatrox",name:"아트록스",t:"전사"},{id:"Ahri",name:"아리",t:"마법사"},
   {id:"Akali",name:"아칼리",t:"암살자"},{id:"Akshan",name:"아크샨",t:"원딜"},
   {id:"Alistar",name:"알리스타",t:"탱커"},{id:"Amumu",name:"아무무",t:"탱커"},
-  {id:"Ambessa",name:"앰베사",t:"전사"},
+  {id:"Ambessa",name:"암베사",t:"전사"},
   {id:"Anivia",name:"애니비아",t:"마법사"},{id:"Annie",name:"애니",t:"마법사"},
   {id:"Aphelios",name:"아펠리오스",t:"원딜"},{id:"Ashe",name:"애쉬",t:"원딜"},
   {id:"AurelionSol",name:"아우렐리온 솔",t:"마법사"},{id:"Aurora",name:"오로라",t:"마법사"},
@@ -108,10 +108,10 @@ const DRAFT = [
   {phase:"pick",team:1, label:"블루 픽"},
   {phase:"pick",team:1, label:"블루 픽"},
   {phase:"pick",team:2, label:"레드 픽"},
-  {phase:"ban", team:1, label:"블루 밴"},
-  {phase:"ban", team:2, label:"레드 밴"},
-  {phase:"ban", team:1, label:"블루 밴"},
-  {phase:"ban", team:2, label:"레드 밴"},
+  {phase:"ban", team:1, label:"레드 밴"},
+  {phase:"ban", team:2, label:"블루 밴"},
+  {phase:"ban", team:1, label:"레드 밴"},
+  {phase:"ban", team:2, label:"블루 밴"},
   {phase:"pick",team:2, label:"레드 픽"},
   {phase:"pick",team:1, label:"블루 픽"},
   {phase:"pick",team:1, label:"블루 픽"},
@@ -202,10 +202,10 @@ function SideModal({ gameNum, t1, t2, onConfirm, onCancel }) {
 }
 
 // ─── ChampCard ────────────────────────────────────────────────────────────────
-function ChampCard({ champ, state, onClick }) {
+function ChampCard({ champ, state, onClick, onDoubleClick }) {
   const cls = ["champ-card", state !== "n" ? `cc-${state}` : ""].join(" ").trim();
   return (
-    <div className={cls} onClick={onClick} title={champ.name}>
+    <div className={cls} onClick={onClick} onDoubleClick={onDoubleClick} title={champ.name}>
       <img src={IMG(champ.id)} alt={champ.name} className="champ-img"
         onError={e => { e.target.style.display = "none"; }} />
       <span className="champ-name">{champ.name}</span>
@@ -272,6 +272,20 @@ export default function App() {
   function handleClick(id) {
     if (cSt(id) === "off" || cSt(id) === "fear" || done) return;
     setSel(p => p === id ? null : id);
+  }
+
+  function handleDoubleClick(id) {
+    if (cSt(id) === "off" || cSt(id) === "fear" || done || !cur) return;
+    setSel(id);
+    if (cur.phase === "ban") {
+      setActs(p => [...p, { id, phase: "ban", team: cur.team }]);
+      setStep(p => p + 1);
+      setSel(null);
+    } else if (cur.phase === "pick") {
+      setActs(p => [...p, { id, phase: "pick", team: cur.team }]);
+      setStep(p => p + 1);
+      setSel(null);
+    }
   }
 
   function commit(phase) {
@@ -404,7 +418,9 @@ export default function App() {
               </div>
               <div className="champ-grid">
                 {filtered.map(c => (
-                  <ChampCard key={c.id} champ={c} state={cSt(c.id)} onClick={() => handleClick(c.id)} />
+                  <ChampCard key={c.id} champ={c} state={cSt(c.id)}
+                    onClick={() => handleClick(c.id)}
+                    onDoubleClick={() => handleDoubleClick(c.id)} />
                 ))}
               </div>
             </>
